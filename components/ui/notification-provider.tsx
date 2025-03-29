@@ -42,7 +42,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     const notification: NotificationItem = {
       id,
       duration: 5000,
-      position: "top-right",
+      position: "bottom-right",
       ...options,
     }
 
