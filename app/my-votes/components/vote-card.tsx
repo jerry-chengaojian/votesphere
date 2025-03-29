@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Vote, Clock, Users } from "lucide-react"
 import Link from "next/link"
-import Image from "next/image"
 
 interface VoteCardProps {
   id: string
@@ -35,11 +34,10 @@ export function VoteCard({
     <div className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
       <div className="flex">
         <div className="relative w-32 h-32">
-          <Image
+          <img
             src={imageUrl}
             alt={title}
-            fill
-            className="object-cover"
+            className="object-cover w-full h-full"
           />
         </div>
         <div className="flex-1 p-4">
