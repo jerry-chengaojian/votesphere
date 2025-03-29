@@ -12,26 +12,27 @@ export async function POST(request: Request) {
       )
     }
 
-    const pinataFormData = new FormData()
-    pinataFormData.append('file', file)
+    // const pinataFormData = new FormData()
+    // pinataFormData.append('file', file)
 
-    const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
-      method: 'POST',
-      headers: {
-        'pinata_api_key': process.env.NEXT_PINATA_API_KEY!,
-        'pinata_secret_api_key': process.env.NEXT_PINATA_SECRET_API_KEY!,
-      },
-      body: pinataFormData,
-    })
+    // const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+    //   method: 'POST',
+    //   headers: {
+    //     'pinata_api_key': process.env.NEXT_PINATA_API_KEY!,
+    //     'pinata_secret_api_key': process.env.NEXT_PINATA_SECRET_API_KEY!,
+    //   },
+    //   body: pinataFormData,
+    // })
 
-    if (!response.ok) {
-      throw new Error(`Pinata API error! status: ${response.status}`)
-    }
+    // if (!response.ok) {
+    //   throw new Error(`Pinata API error! status: ${response.status}`)
+    // }
 
-    const result = await response.json()
-    return NextResponse.json({ 
-      url: `https://ipfs.io/ipfs/${result.IpfsHash}`
-    })
+    // const result = await response.json()
+    // return NextResponse.json({ 
+    //   url: `https://ipfs.io/ipfs/${result.IpfsHash}`
+    // })
+    return NextResponse.json({"url":"https://ipfs.io/ipfs/QmUKJma13RpaXzTHgfS9JPtSnxLZvGfsBYG6Ff7QbY7n54"})
 
   } catch (error) {
     console.error('Error uploading to IPFS:', error)

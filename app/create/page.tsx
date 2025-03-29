@@ -1,18 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { useRouter } from 'next/navigation'
-import { useAccount } from 'wagmi'
+import { useAccount, usePublicClient } from 'wagmi'
 import { ImagePlus } from 'lucide-react'
 import { useNotification } from '@/components/ui/notification-provider'
+import { useWriteVoteSphereCreatePoll } from '@/app/utils/VoteSphere'
 
 export default function CreateVotePage() {
-  const router = useRouter()
-  const { address, isConnected } = useAccount()
+  const [isConfirming, setIsConfirming] = useState(false)
+  const { isConnected } = useAccount()
   const { showNotification } = useNotification()
+  const { writeContractAsync } = useWriteVoteSphereCreatePoll()
+  const publicClient = usePublicClient()
   
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
@@ -30,6 +32,9 @@ export default function CreateVotePage() {
     endDate: '',
     coverImage: ''
   })
+
+  // Update the combined loading state
+  const isLoading = isSubmitting || isConfirming
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -109,26 +114,65 @@ export default function CreateVotePage() {
     setIsSubmitting(true)
     
     try {
-      // Here you would implement the actual blockchain transaction
-      // For now, we'll just simulate a successful creation
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      if (!publicClient) throw new Error("Public client not initialized")
+      
+      const startTimestamp = Math.floor(new Date(formData.startDate).getTime() / 1000)
+      const endTimestamp = Math.floor(new Date(formData.endDate).getTime() / 1000)
+
+      // 1. Send transaction
+      const hash = await writeContractAsync({
+        args: [
+          formData.title,
+          formData.description,
+          formData.coverImageUrl,
+          BigInt(startTimestamp),
+          BigInt(endTimestamp)
+        ]
+      })
+
+      // 2. Show waiting notification and set confirming state
+      setIsConfirming(true)
+      showNotification({
+        title: "Transaction Submitted",
+        description: "Please wait while your transaction is being confirmed...",
+        variant: "info"
+      })
+
+      // 3. Wait for confirmation
+      await publicClient.waitForTransactionReceipt({ hash })
       
       showNotification({
-        title: "Vote created successfully",
-        description: "Your vote has been created and is now live",
+        title: "Vote Created Successfully",
+        description: "Your vote has been created!",
         variant: "success"
       })
       
-      router.push('/')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating vote:', error)
+      
+      // Provide more specific error messages based on the error type
+      let errorTitle = "Failed to create vote";
+      let errorDescription = "There was an error creating your vote. Please try again.";
+      
+      if (error?.message?.includes('rejected')) {
+        errorTitle = "Transaction Rejected";
+        errorDescription = "You rejected the transaction in your wallet.";
+      } else if (error?.message?.includes('insufficient funds')) {
+        errorTitle = "Insufficient Funds";
+        errorDescription = "You don't have enough funds to complete this transaction.";
+      } else if (error?.message?.includes('network')) {
+        errorTitle = "Network Error";
+        errorDescription = "There was a problem connecting to the blockchain. Please check your connection.";
+      }
+      
       showNotification({
-        title: "Failed to create vote",
-        description: "There was an error creating your vote. Please try again.",
+        title: errorTitle,
+        description: errorDescription,
         variant: "error"
       })
     } finally {
       setIsSubmitting(false)
+      setIsConfirming(false)
     }
   }
 
@@ -245,9 +289,19 @@ export default function CreateVotePage() {
           <Button 
             type="submit" 
             className="w-full py-6 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-medium"
-            disabled={isSubmitting}
+            disabled={isLoading}
           >
-            {isSubmitting ? 'Creating Vote...' : 'Create Vote'}
+            {isLoading && (
+              <span className="flex items-center justify-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {isConfirming ? 'Confirming Transaction...' : 
+                 'Processing...'}
+              </span>
+            )}
+            {!isLoading && 'Create Vote'}
           </Button>
         </form>
       </div>
