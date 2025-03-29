@@ -161,8 +161,6 @@ export default function SubmitProposal() {
     }
   }
 
-  if (isLoadingCombined) return <div>Loading...</div>
-
   const [_, title] = pollDetails || [null, "Loading..."]
 
   return (
