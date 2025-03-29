@@ -50,7 +50,10 @@ export function Navbar() {
         </div>
         
         <div className="hidden md:flex items-center space-x-4">
-          <Input className="w-64 lg:w-96" />
+          <div className="relative">
+            <Input className="w-64 lg:w-96 pr-9" />
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+          </div>
           <Button variant="ghost" size="icon" className="rounded-full">
             <Bell className="h-5 w-5 text-gray-500" />
           </Button>
@@ -87,7 +90,8 @@ export function Navbar() {
           </div>
           <div className="pt-3 border-t border-gray-100">
             <div className="relative mb-4">
-              <Input className="w-full" />
+              <Input className="w-full pr-9" />
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
             </div>
             <div className="flex items-center justify-between">
               <Button variant="ghost" size="icon" className="rounded-full">
