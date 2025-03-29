@@ -8,6 +8,7 @@ import { useAccount } from 'wagmi'
 import { useWriteVoteSphereVote, useReadVoteSphereHasVoted } from '@/app/utils/VoteSphere'
 import { useNotification } from '@/components/ui/notification-provider'
 import { usePublicClient } from 'wagmi'
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function VoteDetail() {
   const router = useRouter()
@@ -17,19 +18,20 @@ export default function VoteDetail() {
   const { showNotification } = useNotification()
   const { writeContractAsync: vote } = useWriteVoteSphereVote()
   const publicClient = usePublicClient()
+  const queryClient = useQueryClient()
 
   // Fetch poll details
-  const { data: pollDetails, isLoading: isPollLoading, error: pollError } = useReadVoteSphereGetPollDetails({
+  const { data: pollDetails, isLoading: isPollLoading, error: pollError, queryKey } = useReadVoteSphereGetPollDetails({
     args: [pollId],
   })
 
   // Fetch candidates
-  const { data: candidatesData, isLoading: isCandidatesLoading, error: candidatesError } = useReadVoteSphereGetAllCandidates({
+  const { data: candidatesData, isLoading: isCandidatesLoading, error: candidatesError, queryKey: candidatesQueryKey } = useReadVoteSphereGetAllCandidates({
     args: [pollId],
   })
 
   // Check if user has voted
-  const { data: hasVoted, isLoading: isCheckingVote } = useReadVoteSphereHasVoted({
+  const { data: hasVoted, isLoading: isCheckingVote, queryKey: hasVotedQueryKey } = useReadVoteSphereHasVoted({
     args: [pollId, address!],
     account: address
   })
@@ -121,9 +123,10 @@ export default function VoteDetail() {
         description: "Your vote has been recorded successfully.",
         variant: "success"
       })
-      // Reload page to show updated vote counts
-      router.refresh()
-
+      // Invalidate query
+      queryClient.invalidateQueries({ queryKey })
+      queryClient.invalidateQueries({ queryKey: candidatesQueryKey })
+      queryClient.invalidateQueries({ queryKey: hasVotedQueryKey })
     } catch (error: any) {
       let errorTitle = "Failed to submit vote"
       let errorDescription = "There was an error submitting your vote. Please try again."
@@ -184,7 +187,7 @@ export default function VoteDetail() {
                 <div className="flex items-center text-gray-500">
                   <Calendar className="h-4 w-4 mr-1" />
                   <span className="text-sm">
-                    Created on {new Date(Number(startTime) * 1000).toLocaleDateString()}
+                    Start from {new Date(Number(startTime) * 1000).toLocaleString()}
                   </span>
                 </div>
               </div>
