@@ -16,20 +16,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NFT Marketplace DApp",
-  description: "A decentralized NFT marketplace for creating, buying, and selling digital collectibles using USDT",
-  keywords: ["NFT", "marketplace", "blockchain", "ethereum", "web3", "digital collectibles", "crypto", "USDT"],
-  authors: [{ name: "NFT Marketplace Team" }],
+  title: "VoteSphere - Decentralized Voting Platform",
+  description: "A decentralized voting platform for creating and participating in transparent, secure blockchain-based polls",
+  keywords: ["voting", "blockchain", "ethereum", "web3", "decentralized", "polls", "elections", "democracy"],
+  authors: [{ name: "VoteSphere Team" }],
   openGraph: {
-    title: "NFT Marketplace DApp",
-    description: "Create, buy, and sell NFTs on our decentralized marketplace",
+    title: "VoteSphere - Decentralized Voting Platform",
+    description: "Create and participate in transparent blockchain-based polls",
     type: "website",
-    siteName: "NFT Marketplace DApp",
+    siteName: "VoteSphere",
   },
   twitter: {
     card: "summary_large_image",
-    title: "NFT Marketplace DApp",
-    description: "Create, buy, and sell NFTs on our decentralized marketplace",
+    title: "VoteSphere - Decentralized Voting Platform",
+    description: "Create and participate in transparent blockchain-based polls",
   },
 };
 

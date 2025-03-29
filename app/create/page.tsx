@@ -20,7 +20,8 @@ export default function CreateVotePage() {
     description: '',
     startDate: '',
     endDate: '',
-    coverImage: null as File | null
+    coverImage: null as File | null,
+    coverImageUrl: ''
   })
   const [errors, setErrors] = useState({
     title: '',
@@ -40,10 +41,39 @@ export default function CreateVotePage() {
     }
   }
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFormData(prev => ({ ...prev, coverImage: e.target.files![0] }))
-      setErrors(prev => ({ ...prev, coverImage: '' }))
+      const file = e.target.files[0]
+      
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (!response.ok) {
+          throw new Error('Upload failed')
+        }
+
+        const data = await response.json()
+        setFormData(prev => ({ 
+          ...prev, 
+          coverImage: file,
+          coverImageUrl: data.url
+        }))
+        setErrors(prev => ({ ...prev, coverImage: '' }))
+        
+      } catch (error) {
+        console.error('Error uploading image:', error)
+        showNotification({
+          title: "Upload Failed",
+          description: "Failed to upload image. Please try again.",
+          variant: "error"
+        })
+      }
     }
   }
 
@@ -119,7 +149,7 @@ export default function CreateVotePage() {
               {formData.coverImage ? (
                 <div className="flex flex-col items-center">
                   <img 
-                    src={URL.createObjectURL(formData.coverImage)} 
+                    src={formData.coverImageUrl || URL.createObjectURL(formData.coverImage)} 
                     alt="Preview" 
                     className="max-h-48 object-contain mb-2" 
                   />

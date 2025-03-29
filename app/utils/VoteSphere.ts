@@ -313,8 +313,8 @@ export const voteSphereAbi = [
  * - 
  */
 export const voteSphereAddress = {
-  31337: '0x5fbdb2315678afecb367f032d93f642f64180aa3',
-  11155111: '0x112234455C3a32FD11230C42E7Bccd4A84e02010',
+  31337: process.env.NEXT_PUBLIC_VOTESPHERE_ADDRESS as `0x${string}`,
+  11155111: process.env.NEXT_PUBLIC_VOTESPHERE_ADDRESS as `0x${string}`,
 } as const
 
 /**
