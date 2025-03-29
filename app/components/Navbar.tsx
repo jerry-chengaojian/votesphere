@@ -45,7 +45,7 @@ export function Navbar() {
           <div className="hidden md:flex ml-12 space-x-6">
             <Link href="/" className={getLinkClassName('/')}>Votes</Link>
             <Link href="/create" className={getLinkClassName('/create')}>Create</Link>
-            <Link href="/my-collection" className={getLinkClassName('/my-votes')}>My Votes</Link>
+            <Link href="/my-votes" className={getLinkClassName('/my-votes')}>My Votes</Link>
           </div>
         </div>
         
@@ -83,7 +83,7 @@ export function Navbar() {
           <div className="flex flex-col space-y-3">
             <Link href="/" className={getLinkClassName('/')}>Votes</Link>
             <Link href="/create" className={getLinkClassName('/create')}>Create</Link>
-            <Link href="/my-collection" className={getLinkClassName('/my-votes')}>My Votes</Link>
+            <Link href="/my-votes" className={getLinkClassName('/my-votes')}>My Votes</Link>
           </div>
           <div className="pt-3 border-t border-gray-100">
             <div className="relative mb-4">
