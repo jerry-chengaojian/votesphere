@@ -3,11 +3,20 @@
 import Link from 'next/link'
 import { Calendar, Clock } from 'lucide-react'
 import { useReadVoteSphereGetPollDetails, useReadVoteSphereGetAllCandidates } from '@/app/utils/VoteSphere'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
+import { useAccount } from 'wagmi'
+import { useWriteVoteSphereVote, useReadVoteSphereHasVoted } from '@/app/utils/VoteSphere'
+import { useNotification } from '@/components/ui/notification-provider'
+import { usePublicClient } from 'wagmi'
 
 export default function VoteDetail() {
+  const router = useRouter()
   const params = useParams()
   const pollId = typeof params.id === 'string' && !isNaN(Number(params.id)) ? BigInt(params.id) : BigInt(0)
+  const { address } = useAccount()
+  const { showNotification } = useNotification()
+  const { writeContractAsync: vote } = useWriteVoteSphereVote()
+  const publicClient = usePublicClient()
 
   // Fetch poll details
   const { data: pollDetails, isLoading: isPollLoading, error: pollError } = useReadVoteSphereGetPollDetails({
@@ -17,6 +26,12 @@ export default function VoteDetail() {
   // Fetch candidates
   const { data: candidatesData, isLoading: isCandidatesLoading, error: candidatesError } = useReadVoteSphereGetAllCandidates({
     args: [pollId],
+  })
+
+  // Check if user has voted
+  const { data: hasVoted, isLoading: isCheckingVote } = useReadVoteSphereHasVoted({
+    args: [pollId, address!],
+    account: address
   })
 
   if (isPollLoading || isCandidatesLoading) return <div>Loading...</div>
@@ -32,6 +47,7 @@ export default function VoteDetail() {
     endTime,
     organizer,
     isActive,
+    candidateCount,
     totalVotes
   ] = pollDetails
 
@@ -71,6 +87,61 @@ export default function VoteDetail() {
     } catch (error) {
       console.error('Error converting totalVotes:', error)
       return 0
+    }
+  }
+
+  const handleVote = async (candidateId: bigint) => {
+    if (!publicClient) {
+      showNotification({
+        title: "Error",
+        description: "Wallet connection not initialized",
+        variant: "error"
+      })
+      return
+    }
+
+    try {
+      // Send transaction
+      const hash = await vote({
+        args: [pollId, candidateId]
+      })
+
+      // Show waiting notification
+      showNotification({
+        title: "Transaction Submitted",
+        description: "Please wait while your transaction is being confirmed...",
+        variant: "info"
+      })
+
+      // Wait for confirmation
+      await publicClient.waitForTransactionReceipt({ hash })
+      
+      showNotification({
+        title: "Vote Submitted",
+        description: "Your vote has been recorded successfully.",
+        variant: "success"
+      })
+      // Reload page to show updated vote counts
+      router.refresh()
+
+    } catch (error: any) {
+      let errorTitle = "Failed to submit vote"
+      let errorDescription = "There was an error submitting your vote. Please try again."
+      
+      if (error?.message?.includes('rejected')) {
+        errorTitle = "Transaction Rejected"
+        errorDescription = "You rejected the transaction in your wallet."
+      } else if (error?.message?.includes('insufficient funds')) {
+        errorTitle = "Insufficient Funds"
+        errorDescription = "You don't have enough funds to complete this transaction."
+      }
+
+      showNotification({
+        title: errorTitle,
+        description: errorDescription,
+        variant: "error"
+      })
+      console.error('Voting error:', error)
     }
   }
 
@@ -148,8 +219,16 @@ export default function VoteDetail() {
                         </div>
                         <p className="text-gray-500 text-sm mt-1">{candidateDescriptions[index]}</p>
                         {isActive.toString().toLowerCase() === "true" && now >= startTimeBigInt && now <= endTimeBigInt && (
-                          <button className="mt-3 px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition">
-                            Vote for this
+                          <button
+                            onClick={() => handleVote(candidateId)}
+                            disabled={isCheckingVote}
+                            className={`mt-3 px-4 py-2 rounded-lg text-sm font-medium transition
+                              ${hasVoted 
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-blue-500 hover:bg-blue-600'
+                              } text-white`}
+                          >
+                            {hasVoted ? 'Already Voted' : 'Vote for this'}
                           </button>
                         )}
                       </div>
