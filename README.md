@@ -10,6 +10,8 @@ VoteSphere is a blockchain-based voting platform that allows users to:
 - Vote on proposals in active polls
 - Track voting statistics and results in real-time
 
+**Project Address**: [https://votesphere-zeta.vercel.app/](https://votesphere-zeta.vercel.app/)
+
 ## Technology Stack
 
 - **Frontend**: Next.js 15, React 19, TailwindCSS 4
